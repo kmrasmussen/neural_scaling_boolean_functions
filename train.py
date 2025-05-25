@@ -84,7 +84,7 @@ train_step = jax.jit(_train_step_impl, static_argnames=['model_apply_fn', 'curre
 # Configuration
 num_batch_steps = 1000000
 batch_size = 1028
-task_interval_length = 4
+task_interval_length = 5
 n_task_intervals = 8
 base_train_key = jax.random.key(42)
 
@@ -92,7 +92,7 @@ learning_rate = 1e-4
 loss_epsilon = 0.05
 ema_beta = 0.01
 
-max_width = 4096
+max_width = 8000
 min_width = 32
 num_widths = 20
 log_spaced_widths = jnp.geomspace(
@@ -238,12 +238,12 @@ for i, current_model_hidden_dims in enumerate(configurations_to_try):
         if batch_step > 10000:
           if last_log_item['emaloss'] < log_item['emaloss']:
             n_nonimproving_steps += 1
-            if n_nonimproving_steps > 100:
+            if n_nonimproving_steps > 200:
               print('n nonimproving steps exceeded 10 ')
               break
           if log_item['emaloss'] < last_log_item['emaloss']:
             n_improving_steps += 1
-            if n_improving_steps > 200:
+            if n_improving_steps > 400:
               print('saw steady improvement, resetting early stopper')
               n_nonimproving_steps = 0
               n_improving_steps = 0
