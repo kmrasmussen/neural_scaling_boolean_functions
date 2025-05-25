@@ -3,60 +3,71 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import matplotlib.colors as mcolors
 # %%
-df = pd.read_json('jsonls/hejsa4.jsonl', lines=True)
+df = pd.read_json('experiment_runs.jsonl', lines=True)
 # %%
 df_filtered = df[df['cumulbits'] >= 1e6]
 # %%
-plt.scatter(df_filtered['cumulbits'], df_filtered['emaloss'], c=df_filtered['total_params'], cmap='viridis', norm=mcolors.LogNorm())
-plt.xscale('log')
-plt.xlabel('cumulbits (log scale)')
-plt.ylabel('cross-entropy loss (bits)')
-plt.title('Training snapshots for loss vs cumulative number of samples seen (cumulbits >= 1e6)')
-cbar = plt.colorbar()
-cbar.set_label('model parameters')
-plt.show()
+def scatter_plotter_function(
+  df,
+  x_column, 
+  y_column,
+  total_params_column,
+  xlabel,
+  ylabel,
+  title,
+  x_scale_log=True,
+  output_filepath=None
+):
+  plt.figure()
+  plt.scatter(
+    df[x_column],
+    df[y_column],
+    c=df[total_params_column],
+    cmap='viridis',
+    norm=mcolors.LogNorm())
+  if x_scale_log:
+    plt.xscale('log')
+  plt.xlabel(xlabel)
+  plt.ylabel(ylabel)
+  plt.title(title)
+  cbar = plt.colorbar()
+  cbar.set_label('model parameters')
+  if output_filepath:
+    plt.savefig(output_filepath)
+    print('Saved plot')
+  plt.close()
+  
 # %%
-
-plt.scatter(df_filtered['cumulbits']*df_filtered['batch_flops']/df_filtered['batch_size'], df_filtered['emaloss'], c=df_filtered['total_params'], cmap='viridis', norm=mcolors.LogNorm())
-plt.xscale('log')
-plt.xlabel('cumultative flops (log scale)')
-plt.ylabel('cross-entropy loss (bits)')
-plt.title('Training snapshots for loss vs cumulative flops (cumulbits >= 1e6)')
-cbar = plt.colorbar()
-cbar.set_label('model parameters')
-plt.show()
+scatter_plotter_function(
+  df_filtered,
+  x_column='cumulbits',
+  y_column='emaloss',
+  total_params_column='total_params',
+  xlabel='data samples seen',
+  ylabel='cross-entropy (bits)',
+  title='Loss vs data',
+  output_filepath='plots/loss_vs_data.png'
+)
 # %%
-df
+scatter_plotter_function(
+  df_filtered,
+  x_column='cumulsurp',
+  y_column='emaloss',
+  total_params_column='total_params',
+  xlabel='cumulative surprisal',
+  ylabel='cross-entropy (bits)',
+  title='Loss vs surprise',
+  output_filepath='plots/loss_vs_cumulsurp.png'
+)
 # %%
-plt.scatter(df_filtered['cumulbits']*df_filtered['batch_flops']/df_filtered['batch_size'], df_filtered['cumulsurp'], c=df_filtered['total_params'], cmap='viridis', norm=mcolors.LogNorm())
-plt.xscale('log')
-plt.xlabel('cumulflops')
-plt.ylabel('cumulsurp')
-plt.yscale('log')
-plt.title('Training snapshots for loss vs cumulative flops (cumulbits >= 1e6)')
-cbar = plt.colorbar()
-cbar.set_label('model parameters')
-plt.show()
-# %%
-plt.scatter(df_filtered['cumulbits']*df_filtered['batch_flops']/df_filtered['batch_size'], df_filtered['emaloss'], c=df_filtered['total_params'], cmap='viridis', norm=mcolors.LogNorm())
-plt.xscale('log')
-plt.xlabel('cumulflops')
-plt.ylabel('cumulsurp')
-plt.yscale('log')
-plt.title('Training snapshots for loss vs cumulative flops (cumulbits >= 1e6)')
-cbar = plt.colorbar()
-cbar.set_label('model parameters')
-plt.show()
-# %%
-plt.scatter(df_filtered['cumulbits'], df_filtered['cumulsurp'], c=df_filtered['total_params'], cmap='viridis', norm=mcolors.LogNorm())
-plt.xscale('log')
-plt.yscale('log')
-# %%
-plt.scatter(df_filtered['cumulbits'], df_filtered['cumulsurp']/df_filtered['cumulbits'], c=df_filtered['total_params'], cmap='viridis', norm=mcolors.LogNorm())
-plt.xscale('log')
-plt.yscale('log')
-# %%
-plt.scatter(df_filtered['cumulbits'], df_filtered['emaloss'], c=df_filtered['total_params'], cmap='viridis', norm=mcolors.LogNorm())
-plt.xscale('log')
-plt.yscale('log')
-# %%
+df_filtered['cumulflops'] = df_filtered['cumulbits']*df_filtered['forward_backward_flops']
+scatter_plotter_function(
+  df_filtered,
+  x_column='cumulflops',
+  y_column='emaloss',
+  total_params_column='total_params',
+  xlabel='data samples seen',
+  ylabel='cross-entropy (bits)',
+  title='Loss vs flops',
+  output_filepath='plots/loss_vs_flops.png'
+)
